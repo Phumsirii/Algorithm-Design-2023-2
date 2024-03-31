@@ -1,31 +1,34 @@
 #include <bits/stdc++.h>
 using namespace std;
-//both are labelled with [x][y]
-vector<vector<int>> dp(1001,vector<int> (1001,-1));
-vector<vector<bool>> hasholes(1001,vector<bool> (1001,false));
-int n,hx,hy,tmpx,tmpy;
-int recur(int x,int y){
-    cout<<x<<" "<<y<<"\n";
-    //reaches edges of the area
-    if (x==1 || x==1000 || y==1 || y==1000){
-        if (hasholes[x][y]) return dp[x][y]=1;
-        else return dp[x][y]=0;
-    }
-    if (dp[x][y]>=0) return dp[x][y];
-    //try all 4 possible moves
-    int c1=recur(x,y+1);
-    int c2=recur(x+1,y);
-    int c3=recur(x,y-1);
-    int c4=recur(x-1,y);
-    dp[x][y]=min({c1,c2,c3,c4});
-    if (hasholes[x][y]) dp[x][y]++;
-    return dp[x][y];
-}
+int n,hx,hy,tx,ty;
+vector<vector<bool>> holes(1001,vector<bool> (1001,false)); //[x][y] for location
+vector<vector<int>> overall(1001,vector<int> (1001,1e9)); //distance from house to each cell
+priority_queue<pair<int,pair<int,int>>,vector<pair<int,pair<int,int>>>,greater<pair<int,pair<int,int>>>> pq; //{distance,{x,y}}
+vector<int> dx={1,-1,0,0},dy={0,0,1,-1};
 int main(){
     cin>>n>>hx>>hy;
     while(n--){
-        cin>>tmpx>>tmpy;
-        hasholes[tmpx][tmpy]=true;
+        cin>>tx>>ty;
+        holes[tx][ty]=true;
     }
-    cout<<recur(hx,hy);
+    pq.push(make_pair(0,make_pair(hx,hy)));
+    while(!pq.empty()){
+        int dist=pq.top().first,cx=pq.top().second.first,cy=pq.top().second.second;
+        pq.pop();
+        //the edge is reached
+        if (cx==1 || cx==1000 || cy==1 || cy==1000){
+            cout<<dist;
+            return 0;
+        }
+        //if the new data is better than the previous, edit it and its neighbors
+        if (dist<overall[cx][cy]){
+            overall[cx][cy]=dist;
+            //iterate through all neighbors
+            for(int i=0;i<4;++i){
+                //if the neighbor has holes, distance to reach that is distance to this + 1 
+                if (holes[cx+dx[i]][cy+dy[i]]) pq.push(make_pair(dist+1,make_pair(cx+dx[i],cy+dy[i])));
+                else pq.push(make_pair(dist,make_pair(cx+dx[i],cy+dy[i])));
+            }
+        }
+    }
 }
