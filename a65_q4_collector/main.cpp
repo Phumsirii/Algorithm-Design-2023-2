@@ -3,34 +3,38 @@ using namespace std;
 int n,k,bestprice=1e9;
 //indicate versions received at each states
 vector<bool> versionscollected;
+//for tail [k][n] stores and version
 vector<vector<int>> stores_versionsoffered;
-vector<int> stores_price,cumoffers;
+vector<vector<bool>> tailavailability;
+vector<int> stores_price;
 //it is the id of store considering
 void recur(int it,int versionsgained,int pricepayed){
+    // cout<<it<<" "<<versionsgained<<" "<<pricepayed<<endl;
     if (versionsgained==n){
         bestprice=min(bestprice,pricepayed);
         return ;
     }
-    //no chance of gaining every versions
-    if (versionsgained+cumoffers[k]-cumoffers[it]<n) return;
     if (pricepayed>=bestprice) return;
     if (it==k) return ;
-    vector<int> indicesedited(stores_versionsoffered[it].size(),-1);
+    //consider all versions
+    for(int i=0;i<n;++i){
+        if (!versionscollected[i] && !tailavailability[it][i]) return;
+    }
+    vector<bool> indicesedited(n,false);
     //consider purchasing this store
     int noofversionsgain=0;
     //for all versions in this store
     for(auto&x:stores_versionsoffered[it]){
         if (!versionscollected[x-1]){
             versionscollected[x-1]=true;
-            indicesedited[noofversionsgain]=x-1;
+            indicesedited[x-1]=true;
             noofversionsgain++;
         }
     }
     recur(it+1,versionsgained+noofversionsgain,pricepayed+stores_price[it]);
     //ignoring this store
-    for(int &x:indicesedited){
-        if (x==-1) break;
-        versionscollected[x]=false;
+    for(int i=0;i<n;++i){
+        if (indicesedited[i]) versionscollected[i]=false;
     }
     recur(it+1,versionsgained,pricepayed);
     return ;
@@ -41,14 +45,21 @@ int main(){
     versionscollected.resize(n,false);
     stores_versionsoffered.resize(k);
     stores_price.resize(k);
-    cumoffers.resize(k+1,0);
+    tailavailability.resize(k,vector<bool> (n,false));
+    //consider the i th store 
     for(int i=0;i<k;++i){
         cin>>stores_price[i];
         int noofversions;
         cin>>noofversions;
-        cumoffers[i+1]=cumoffers[i]+noofversions;
         stores_versionsoffered[i].resize(noofversions);
-        for(int j=0;j<noofversions;++j) cin>>stores_versionsoffered[i][j];
+        for(int j=0;j<noofversions;++j){
+            //get the new version offered
+            cin>>stores_versionsoffered[i][j];
+            for(int it=i;it>=0;--it){
+                if (tailavailability[it][stores_versionsoffered[i][j]-1]) break;
+                tailavailability[it][stores_versionsoffered[i][j]-1]=true;
+            }
+        }
     }
     recur(0,0,0);
     cout<<bestprice;
