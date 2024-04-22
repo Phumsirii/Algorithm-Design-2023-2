@@ -37,7 +37,7 @@ int main(){
         adj[tmpa].push_back(make_pair(tmpw,tmpb));
         adj[tmpb].push_back(make_pair(tmpw,tmpa));
     }
-    for(int i=0;i<n;++i) sort(adj[i].rbegin(),adj[i].rend());
+    for(int i=0;i<n;++i) sort(adj[i].begin(),adj[i].end(),greater<pair<int,int>> ());
     for(int i=0;i<8;++i){
         bool pass=false;
         for(int j=0;j<n;++j){
