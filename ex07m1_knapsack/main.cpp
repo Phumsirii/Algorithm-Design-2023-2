@@ -1,34 +1,60 @@
 #include <bits/stdc++.h>
 using namespace std;
-double w, maxv = -1e9;
+double w, maxv = 0.0,tmp;
 int n;
-vector<double> values, weights, totalvalue;
-void recur(int no, double currentw, double currentv){
-    // terminating case
-    maxv = max(maxv, currentv);
-    // all items considered, weight exceeds or can't reach the maximum value
-    if (no < 0) return;
-    // consider the no th
-    if (currentw + weights[no] <= w) recur(no-1, currentw + weights[no], currentv + values[no]);
-    // skipping the no th
-    if (no!=0 && currentv + totalvalue[no-1] > maxv) recur(no-1, currentw, currentv);
-    return ;
+class knapsack{
+    public:
+        double weight;
+        double value;
+        knapsack(){}
+        knapsack(int we,int v){
+            this->weight=w;
+            this->value=v;
+        }
+        bool operator<(const knapsack &other)const{
+            return (this->value/this->weight)<(other.value/other.weight);
+        }
+};
+vector<knapsack> datas;
+double heu(int no,double wleft){
+    double ansv=0;
+    for(int i=no;i>=0;--i){
+        //can gain the entire piece
+        if (wleft>datas[i].weight){
+            wleft-=datas[i].weight;
+            ansv+=datas[i].value;
+        }else{
+            ansv+=(wleft/datas[i].weight)*datas[i].value;
+            return ansv;
+        }
+    }
+    return ansv;
 }
-int main()
-{
+void recur(int no, double currentw, double currentv){
+    if (currentw>w) return;
+    maxv=max(maxv,currentv);
+    if (no<0) return ;
+    if (currentv+heu(no,w-currentw)<=maxv) return ;
+    //consider this item
+    recur(no-1,currentw+datas[no].weight,currentv+datas[no].value);
+    //ignore it
+    recur(no-1,currentw,currentv);
+}
+int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(0);
     cin >> w >> n;
-    values.resize(n);
-    weights.resize(n);
-    totalvalue.resize(n, 0);
-    cin>>values[0];
-    totalvalue[0]=values[0];
-    for (int i = 1; i < n; ++i){
-        cin >> values[i];
-        totalvalue[i] = totalvalue[i-1] + values[i];
+    datas.resize(n);
+    for(int i=0;i<n;++i){
+        cin>>tmp;
+        datas[i].value=tmp;
     }
-    for (int i = 0; i < n; ++i) cin >> weights[i];
-    recur(n-1, 0.0, 0.0);
-    cout << fixed << setprecision(4) << maxv;
+    for(int i=0;i<n;++i){
+        cin>>tmp;
+        datas[i].weight=tmp;
+    }
+    sort(datas.begin(),datas.end());
+    recur(n-1,0.0,0.0);
+    cout<<fixed<<setprecision(4)<<maxv<<endl;
+    //for(int i=0;i<n;++i) cout<<datas[i].value/datas[i].weight<<" ";
 }
