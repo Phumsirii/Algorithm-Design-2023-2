@@ -2,7 +2,7 @@
 using namespace std;
 vector<int> goals(8);
 int n,m,tmpa,tmpb,tmpw;
-vector<bool> visited,usededge;
+bool visited[20];
 //weight and destination
 vector<vector<pair<int,int>>> adj;
 //weightleft is weight to reach goals
@@ -15,7 +15,7 @@ bool recur( int it, int weightleft){
     for(int i=0;i<n;++i){
         if (!visited[i] && !adj[i].empty()) maxfromthis+=adj[i][0].first;
     }
-    if (maxfromthis<weightleft) return false;
+    if (weightleft>maxfromthis) return false;
     //for all adj nodes
     for(pair<int,int> &x:adj[it]){
         if (visited[x.second]) continue;
@@ -30,7 +30,6 @@ int main(){
     ios_base::sync_with_stdio(false); cin.tie(0);
     cin>>n>>m;
     for(int i=0;i<8;++i) cin>>goals[i];
-    visited.resize(n,false);
     adj.resize(n);
     for(int i=0;i<m;++i){
         cin>>tmpa>>tmpb>>tmpw;
