@@ -37,7 +37,6 @@ class state{
 };
 priority_queue<state> pq;
 int ans=1e9;
-map<vector<vector<int>>,int> done;
 int main(){
     vector<vector<int>> firstboard(4,vector<int>(4));
     for(int i=0;i<4;++i){
@@ -48,9 +47,6 @@ int main(){
     while(!pq.empty()){
         state candistate=pq.top();
         pq.pop();
-        //if better one is done
-        if (done.find(candistate.board)!=done.end() && done[candistate.board]<=candistate.stepsdone) continue;
-        done[candistate.board]=candistate.stepsdone;
         //cannot be better than ans
         if (candistate.errcnt+candistate.stepsdone>=ans) continue;
         //see all possible moves from this state
