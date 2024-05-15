@@ -1,59 +1,64 @@
 #include <bits/stdc++.h>
+//using state space search
 using namespace std;
-//return indices of students chosen
-void combi_kn_exact(int n,int len,int k,vector<int> &sol,int chosen,vector<vector<int>> &results){
-    if (len<n){
-        if (len-chosen<n-k){
-            sol[len]=0;
-            combi_kn_exact(n,len+1,k,sol,chosen,results);
-        }
-        if (chosen<k){
-            sol[len]=1;
-            combi_kn_exact(n,len+1,k,sol,chosen+1,results);
+class student{
+    public:
+    vector<int> daysfree;
+    student(){}
+    bool operator<(const student &others) const{
+        return daysfree.size()>others.daysfree.size();
+    }
+};
+int n,m,nood,day,ans=10000;
+vector<student> students;
+vector<vector<bool>> tail;
+vector<bool> dayscovered;
+void recur(int it,int noostudentstaken,int daysdonecnt){
+    if (daysdonecnt==n){
+        ans=min(ans,noostudentstaken);
+        return ;
+    }
+    if (noostudentstaken>=ans || it>=m) return ;
+    for(int i=1;i<=n;++i){
+        //no chance to complete this day
+        if (!dayscovered[i] && !tail[it][i]) return;
+    }
+    vector<int> tmp;
+    for(int &x:students[it].daysfree){
+        if (!dayscovered[x]){
+            dayscovered[x]=true;
+            tmp.push_back(x);
         }
     }
-    else{
-        vector<int> r(k);
-        int it=0;
-        for(int i=0;i<n;i++){
-            if (sol[i]) r[it++]=i;
-        }
-        results.push_back(r);
-    }
+    //choosing this student
+    recur(it+1,noostudentstaken+1,daysdonecnt+tmp.size());
+    for(int &x:tmp) dayscovered[x]=false;
+    //ignoring this student
+    recur(it+1,noostudentstaken,daysdonecnt);
 }
 int main(){
-    int n,m,nd,d;
     cin>>n>>m;
-    vector<vector<int>> students_free(m);
-    for(int i=0;i<m;i++){
-        cin>>nd;
-        vector<int> tmp(nd);
-        for(int j=0;j<nd;++j){
-            cin>>tmp[j];
-        }
-        students_free[i]=tmp;
+    //no of days
+    dayscovered.resize(n+1,false);
+    students.resize(m);
+    //current student focusing and the availability of its tail day
+    tail.resize(m,vector<bool> (n+1,false));
+    for(int i=0;i<m;++i){
+        cin>>nood;
+        students[i].daysfree.resize(nood);
+        for(int j=0;j<nood;++j) cin>>students[i].daysfree[j];
     }
-    for(int i=1;i<m;i++){
-        //select exactly i students
-        vector<vector<int>> results;
-        vector<int> sol(m,0);
-        combi_kn_exact(m,0,i,sol,0,results);
-        for(vector<int> x:results){
-            //for each cases of i students
-            set<int> s;
-            for(int y:x){
-                //for each student the combination
-                vector<int> student(students_free[y]);
-                for(int z:student){
-                    //insert all days a student is free
-                    s.insert(z);
-                }
-            }
-            if (s.size()==n){
-                cout<<i;
-                return 0;
+    sort(students.begin(),students.end());
+    for(int &x:students[m-1].daysfree){
+        for(int i=0;i<=m-1;++i) tail[i][x]=true;
+    }
+    for(int i=m-2;i>=0;--i){
+        for(int &x:students[i].daysfree){
+            if (!tail[i][x]){
+                for(int j=0;j<=i;++j) tail[j][x]=true;
             }
         }
     }
-    cout<<m;
+    recur(0,0,0);
+    cout<<ans;
 }
